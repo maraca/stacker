@@ -24,6 +24,8 @@ module Stacker
     method_option :allow_destructive, type: :boolean, default: false,
       banner: 'allow destructive updates'
 
+    method_option :assume_yes, type: :boolean, default: false,
+      banner: 'applies updates without manual confirmation'
     def initialize(*args); super(*args) end
 
     desc "init [PATH]", "Create stacker project directories"
@@ -84,7 +86,7 @@ module Stacker
           if stack.exists?
             next unless full_diff stack
 
-            if yes? "Update remote template with these changes (y/n)?"
+            if options['assume_yes'] || yes?("Update remote template with these changes (y/n)?")
               time = Benchmark.realtime do
                 stack.update allow_destructive: options['allow_destructive']
               end
@@ -93,7 +95,7 @@ module Stacker
               Stacker.logger.warn 'Update skipped'
             end
           else
-            if yes? "#{stack.name} does not exist. Create it (y/n)?"
+            if options['assume_yes'] || yes?("#{stack.name} does not exist. Create it (y/n)?")
               time = Benchmark.realtime do
                 stack.create
               end
